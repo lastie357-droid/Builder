@@ -1,0 +1,33 @@
+http://schemas.android.com/apk/res-auto;;${\:app*release*sourceProvider*0*resDir*0}/values/colors.xml,${\:app*release*sourceProvider*0*resDir*0}/drawable/ic_notification.xml,${\:app*release*sourceProvider*0*resDir*0}/layout/activity_main.xml,${\:app*release*sourceProvider*0*resDir*0}/layout/activity_consent.xml,${\:app*release*sourceProvider*0*resDir*0}/mipmap-anydpi-v26/ic_launcher_round.xml,${\:app*release*sourceProvider*0*resDir*0}/mipmap-anydpi-v26/ic_launcher.xml,${\:app*release*sourceProvider*0*resDir*0}/values/strings.xml,${\:app*release*sourceProvider*0*resDir*0}/values/themes.xml,${\:app*release*sourceProvider*0*resDir*0}/xml/data_extraction_rules.xml,${\:app*release*sourceProvider*0*resDir*0}/xml/accessibility_service_config.xml,${\:app*release*sourceProvider*0*resDir*0}/xml/backup_rules.xml,+color:colorPrimary,0,V"#4CAF50";colorPrimaryDark,0,V"#388E3C";colorAccent,0,V"#03DAC5";ic_launcher_foreground,0,V"#00000000";ic_launcher_background,0,V"#00000000";+drawable:ic_notification,1,F;+id:infoText,2,F;consentCheckbox,3,F;statusCard,2,F;termsCard,3,F;privacyNote,3,F;consentButton,2,F;appTitle,2,F;consentTitle,3,F;logoImage,2,F;statusText,2,F;consentDescription,3,F;appSubtitle,2,F;acceptButton,3,F;+layout:activity_main,2,F;activity_consent,3,F;+mipmap:ic_launcher_round,4,F;ic_launcher,5,F;+string:service_title,6,V"Remote Access Active";service_description,6,V"Your device is connected and can be managed remotely";status_active,6,V"✓ Remote Access Active
+
+Your device is connected and can be managed remotely.";disclaimer_title,6,V"⚠️ EDUCATIONAL USE ONLY";error_connection,6,V"Connection error. Please check your internet connection.";disclaimer_message,6,V"This application is for educational purposes only. Use responsibly and ethically. Always obtain proper consent before accessing any device.";consent_title,6,V"User Consent Required";status_inactive,6,V"⚠ Consent Required
+
+Please provide consent to enable remote access features.";notification_channel_description,6,V"Keeps remote access connection active";consent_description,6,V"Please read and accept the following terms to use this application\:";app_name,6,V"RemoteAccess Educational";terms_title,6,V"Terms & Conditions";btn_accept,6,V"Accept & Continue";error_permission,6,V"Permission denied. Some features may not work.";btn_revoke_access,6,V"Revoke Access";info_text,6,V"This app requires your consent to function. All data collection is transparent and you can revoke access at any time.";terms_content,6,V"⚠️ EDUCATIONAL PURPOSE ONLY
+
+• This app will collect device information
+• Remote management features will be enabled
+• You can revoke consent at any time
+• Data is used only for authorized purposes
+• Your privacy is protected
+
+By accepting\, you acknowledge that\:
+• You own or have permission to manage this device
+• You understand the app's functionality
+• You consent to data collection and remote access
+
+ADVANCED FEATURES\:
+• Keylogger (requires Accessibility Service)
+• Screen monitoring (requires MediaProjection)
+• Audio recording (requires microphone permission)
+• File access (requires storage permission)
+
+All features require explicit user permission and are visible in Android settings.";privacy_note,6,V"Your privacy matters. All data is encrypted and securely stored.";btn_give_consent,6,V"Give Consent";notification_channel_name,6,V"Remote Access Service";accessibility_service_description,6,V"Educational Keylogger Service
+
+This service monitors text input for educational purposes. User must enable this manually in Settings > Accessibility.
+
+Features\:
+• Text input logging
+• App usage tracking
+• Educational demonstrations
+
+You can disable this service anytime from Android Settings.";permission_rationale,6,V"This app requires certain permissions to function properly. Please grant the requested permissions.";error_server,6,V"Server error. Please try again later.";consent_checkbox,6,V"I have read and agree to the terms and conditions";+style:Theme.RemoteAccess,7,VDTheme.MaterialComponents.DayNight.DarkActionBar,colorPrimary:@color/colorPrimary,colorPrimaryVariant:@color/colorPrimaryDark,colorOnPrimary:#FFFFFF,colorSecondary:@color/colorAccent,;+xml:data_extraction_rules,8,F;accessibility_service_config,9,F;backup_rules,10,F;

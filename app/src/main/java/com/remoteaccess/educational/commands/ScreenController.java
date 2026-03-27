@@ -360,7 +360,7 @@ public class ScreenController {
             root.recycle();
 
             if (focused != null) {
-                boolean ok = focused.performAction(AccessibilityNodeInfo.ACTION_IME_ACTION);
+                boolean ok = focused.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 focused.recycle();
                 JSONObject r = new JSONObject();
                 try { r.put("success", ok); r.put("action", "press_enter"); } catch (JSONException ignored) {}
