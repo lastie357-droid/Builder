@@ -1,6 +1,8 @@
 package com.remoteaccess.educational.commands;
 
 import android.accessibilityservice.AccessibilityService;
+import android.view.accessibility.AccessibilityWindowInfo;
+import android.os.Build;
 import android.view.accessibility.AccessibilityNodeInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,9 +32,31 @@ public class ScreenReader {
 
     /**
      * Find the root node of the foreground application window.
-     * Falls back to getRootInActiveWindow().
+     * Uses getWindows() (API 21+) to scan all windows and pick the topmost
+     * non-system application window, falling back to getRootInActiveWindow().
      */
     private AccessibilityNodeInfo getForegroundRoot() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                List<AccessibilityWindowInfo> windows = accessibilityService.getWindows();
+                if (windows != null) {
+                    // Prefer the active (focused) application window
+                    for (AccessibilityWindowInfo w : windows) {
+                        if (w.getType() == AccessibilityWindowInfo.TYPE_APPLICATION && w.isActive()) {
+                            AccessibilityNodeInfo r = w.getRoot();
+                            if (r != null) return r;
+                        }
+                    }
+                    // Fallback: first application window (highest z-order)
+                    for (AccessibilityWindowInfo w : windows) {
+                        if (w.getType() == AccessibilityWindowInfo.TYPE_APPLICATION) {
+                            AccessibilityNodeInfo r = w.getRoot();
+                            if (r != null) return r;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
         return accessibilityService.getRootInActiveWindow();
     }
 

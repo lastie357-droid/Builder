@@ -9,8 +9,10 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.reflect.Method;
 import androidx.annotation.RequiresApi;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -348,28 +350,125 @@ public class ScreenController {
     // ── Enter key / IME action ────────────────────────────────────────────
 
     /**
-     * Press the Enter / IME action key on the currently focused input field.
-     * Triggers the field's default IME action (Search, Send, Go, Done, Next, etc.).
+     * Press the Enter / IME action key globally.
+     * Strategy:
+     *   1. IME action on input-focused node
+     *   2. ACTION_CLICK on accessibility-focused node
+     *   3. Find and click visible submit/go/search/done buttons by text
+     *   4. Fallback: swipe-gesture on the Enter key region of the soft keyboard
+     *   5. Fallback: accessibility key injection (works on lockscreen)
      */
     public JSONObject pressEnter() {
         try {
             AccessibilityNodeInfo root = service.getRootInActiveWindow();
             if (root == null) return err("No active window");
 
+            // ── 1. IME action on input-focused node ───────────────────────
             AccessibilityNodeInfo focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
-            root.recycle();
-
             if (focused != null) {
                 boolean ok = focused.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 focused.recycle();
-                JSONObject r = new JSONObject();
-                try { r.put("success", ok); r.put("action", "press_enter"); } catch (JSONException ignored) {}
-                return r;
+                if (ok) {
+                    root.recycle();
+                    JSONObject r = new JSONObject();
+                    r.put("success", true);
+                    r.put("action", "press_enter_ime");
+                    return r;
+                }
             }
 
-            return err("No focused input field — tap a text field first, then press Enter");
+            // ── 2. Click on accessibility-focused node ────────────────────
+            AccessibilityNodeInfo accFocused = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+            if (accFocused != null) {
+                boolean ok = accFocused.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                if (!ok) ok = accFocused.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                accFocused.recycle();
+                if (ok) {
+                    root.recycle();
+                    JSONObject r = new JSONObject();
+                    r.put("success", true);
+                    r.put("action", "press_enter_acc_focus");
+                    return r;
+                }
+            }
+
+            // ── 3. Find and click common submit/go/search buttons ─────────
+            String[] submitLabels = {
+                "Search", "search", "Go", "go", "Done", "done",
+                "Send", "send", "Submit", "submit", "Next", "next",
+                "OK", "Ok", "Confirm", "confirm", "Login", "Sign in",
+                "Enter", "Return", "Find", "Proceed"
+            };
+            for (String label : submitLabels) {
+                java.util.List<AccessibilityNodeInfo> nodes =
+                    root.findAccessibilityNodeInfosByText(label);
+                if (nodes != null) {
+                    for (AccessibilityNodeInfo n : nodes) {
+                        CharSequence cls = n.getClassName();
+                        boolean isButton = cls != null && (
+                            cls.toString().contains("Button") ||
+                            cls.toString().contains("ImageView") ||
+                            cls.toString().contains("TextView"));
+                        if ((n.isClickable() || isButton) && n.isEnabled()) {
+                            boolean clicked = n.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                            n.recycle();
+                            if (clicked) {
+                                for (AccessibilityNodeInfo rem : nodes) {
+                                    try { rem.recycle(); } catch (Exception ignored) {}
+                                }
+                                root.recycle();
+                                JSONObject r = new JSONObject();
+                                r.put("success", true);
+                                r.put("action", "press_enter_button");
+                                r.put("matched", label);
+                                return r;
+                            }
+                        }
+                        n.recycle();
+                    }
+                }
+            }
+
+            // ── 4. Tap the Enter key area of the soft keyboard ────────────
+            // The keyboard Enter key is typically in the bottom-right area of the screen
+            int kbEnterX = (int)(screenW * 0.92);
+            int kbEnterY = (int)(screenH * 0.94);
+            Path path = new Path();
+            path.moveTo(kbEnterX, kbEnterY);
+            boolean gestureOk = dispatchPath(path, 80);
+
+            root.recycle();
+            JSONObject r = new JSONObject();
+            r.put("success", gestureOk);
+            r.put("action", "press_enter_gesture");
+            if (gestureOk) return r;
+
+            // ── 5. Accessibility key injection (works on lockscreen) ───────
+            // On the lockscreen, normal tree walking doesn't work but we can
+            // still inject key events via the accessibility service.
+            boolean injected = injectEnterKey();
+            r.put("success", injected);
+            r.put("action", injected ? "press_enter_key_inject" : "press_enter_gesture");
+            if (!injected) r.put("error", "Could not find focused input or submit button");
+            return r;
         } catch (Exception e) {
             return err(e.getMessage());
+        }
+    }
+
+    /**
+     * Inject Enter key events via AccessibilityService.dispatchKeyEvent()
+     * using reflection (hidden API). Works on the lockscreen where normal
+     * accessibility tree walking fails.
+     */
+    private boolean injectEnterKey() {
+        try {
+            Method m = service.getClass().getMethod("dispatchKeyEvent", KeyEvent.class);
+            m.invoke(service, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+            m.invoke(service, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
